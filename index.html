@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>To-Do List</title>
+<style>
+    body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1f1f1f;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 600px;
+    margin: 20px auto;
+    background-color: #333;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+h1 {
+    text-align: center;
+    color: #fff;
+}
+input[type="text"] {
+    width: calc(100% - 130px); 
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #666;
+    border-radius: 5px;
+    background-color: #444;
+    color: #fff;
+}
+input[type="text"]:focus {
+    outline: none;
+    border-color: #2a664d;
+}
+button {
+    width: 100px;
+    padding: 10px 20px;
+    background-color: #2a664d;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+button:hover {
+    background-color: #1c4736;
+    transition: 0.3s;
+}
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+li {
+    background-color: #444;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    position: relative;
+}
+li.completed {
+    background-color: #222;
+    text-decoration: line-through;
+}
+.delete-btn {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    color: #dc3545;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background-color: #333;
+    padding: 5px;
+    border-radius: 50%;
+}
+.delete-btn:hover {
+    background-color: #222;
+    transition: 0.3s;
+}
+li:hover .delete-btn {
+    opacity: 1;
+}
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 999;
+}
+
+@media (hover: none) {
+    .delete-btn {
+        opacity: 1;
+    }
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>To-Do List</h1>
+    <input type="text" id="taskInput" placeholder="Add new task">
+    <button onclick="addTask()">Add Task</button>
+    <ul id="todo-list"></ul>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+function renderTasks() {
+    const todoList = document.getElementById('todo-list');
+    todoList.innerHTML = '';
+    tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.textContent = task.text;
+        li.onclick = () => toggleTask(index);
+        if (task.completed) {
+            li.classList.add('completed');
+        }
+        const deleteBtn = document.createElement('span');
+        deleteBtn.textContent = '❌';
+        deleteBtn.classList.add('delete-btn');
+        deleteBtn.onclick = (event) => {
+            event.stopPropagation();
+            deleteTask(index);
+        };
+        li.appendChild(deleteBtn);
+        todoList.appendChild(li);
+    });
+}
+
+function addTask() {
+    const taskInput = document.getElementById('taskInput');
+    const taskText = taskInput.value.trim();
+    if (taskText !== '') {
+        tasks.push({ text: taskText, completed: false });
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        taskInput.value = '';
+        renderTasks();
+        showToast('Task added: ' + taskText);
+    } else {
+        alert('Please enter a task!');
+    }
+}
+
+function toggleTask(index) {
+    const task = tasks[index];
+    task.completed = !task.completed;
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    renderTasks();
+    const taskStatus = task.completed ? 'completed' : 'marked incomplete';
+    showToast('Task ' + taskStatus + ': ' + task.text);
+}
+
+function deleteTask(index) {
+    const deletedTask = tasks[index].text;
+    tasks.splice(index, 1);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    renderTasks();
+    showToast('Task deleted: ' + deletedTask);
+}
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 3000);
+}
+
+renderTasks();
+</script>
+</body>
+</html>
